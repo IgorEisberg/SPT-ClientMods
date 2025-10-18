@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>IcyClawz.CustomInteractions.Prepatch</AssemblyName>
+    <Version>1.6.0</Version>
+    <RootNamespace>IcyClawz.CustomInteractions</RootNamespace>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\Shared\Mono.Cecil.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
