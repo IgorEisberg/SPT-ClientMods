@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace IcyClawz.ItemContextMenuExt;
 
-[BepInPlugin("com.IcyClawz.ItemContextMenuExt", "IcyClawz.ItemContextMenuExt", "1.6.0")]
+[BepInPlugin("com.IcyClawz.ItemContextMenuExt", "IcyClawz.ItemContextMenuExt", "1.7.0")]
 [BepInDependency("com.IcyClawz.CustomInteractions")]
 public class Plugin : BaseUnityPlugin
 {

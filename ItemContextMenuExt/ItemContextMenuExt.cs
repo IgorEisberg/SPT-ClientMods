@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-using ILightTemplate = GInterface357;
-using ISightTemplate = GInterface365;
-using GlobalEvents = GClass3400;
+using ILightTemplate = GInterface370;
+using ISightTemplate = GInterface378;
+using GlobalEvents = GClass3466;
 
 namespace IcyClawz.ItemContextMenuExt;
 

@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace IcyClawz.ItemSellPrice;
 
-[BepInPlugin("com.IcyClawz.ItemSellPrice", "IcyClawz.ItemSellPrice", "1.5.0")]
+[BepInPlugin("com.IcyClawz.ItemSellPrice", "IcyClawz.ItemSellPrice", "1.6.0")]
 public class Plugin : BaseUnityPlugin
 {
     private void Awake()

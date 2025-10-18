@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-using EmptyInteractionsAbstractClass = GClass3423;
+using EmptyInteractionsAbstractClass = GClass3489;
 
 namespace IcyClawz.CustomInteractions;
 
@@ -63,7 +63,7 @@ internal sealed class CustomInteractionsImpl(ItemUiContext context) : EmptyInter
 internal static class AbstractInteractionsExtensions
 {
     private static Dictionary<string, DynamicInteractionClass> GetDynamicInteractions<T>(this ItemInfoInteractionsAbstractClass<T> instance) where T : struct, Enum =>
-        typeof(ItemInfoInteractionsAbstractClass<T>).GetField("dictionary_0", BindingFlags.NonPublic | BindingFlags.Instance)
+        typeof(ItemInfoInteractionsAbstractClass<T>).GetField("dictionary_0", BindingFlags.Public | BindingFlags.Instance)
             .GetValue(instance) as Dictionary<string, DynamicInteractionClass>;
 
     public static void AddCustomInteraction<T>(this ItemInfoInteractionsAbstractClass<T> instance, CustomInteractionImpl impl) where T : struct, Enum =>

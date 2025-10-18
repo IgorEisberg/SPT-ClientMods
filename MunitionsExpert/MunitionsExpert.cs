@@ -68,17 +68,8 @@ internal static class IconCache
 
 internal static class AmmoTemplateExtensions
 {
-    private static readonly string[] MalfChancesKeys = (string[])
-        typeof(AmmoTemplate).GetField("MalfChancesKeys", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
-
-    private static readonly FieldInfo MaxMalfMisfireChance =
-        typeof(AmmoTemplate).GetField("MaxMalfMisfireChance", BindingFlags.NonPublic | BindingFlags.Static);
-
-    private static readonly FieldInfo MaxMalfFeedChance =
-        typeof(AmmoTemplate).GetField("MaxMalfFeedChance", BindingFlags.NonPublic | BindingFlags.Static);
-
     private static readonly FieldInfo CachedQualitiesField =
-        typeof(AmmoTemplate).GetField("_cachedQualities", BindingFlags.NonPublic | BindingFlags.Instance);
+        typeof(AmmoTemplate).GetField("_cachedQualities", BindingFlags.Public | BindingFlags.Instance);
 
     public static List<ItemAttributeClass> GetCachedQualities(this AmmoTemplate instance) =>
         CachedQualitiesField.GetValue(instance) as List<ItemAttributeClass>;
@@ -138,14 +129,14 @@ internal static class AmmoTemplateExtensions
             Base = () => instance.MalfMisfireChance,
             StringValue = () =>
             {
-                float maxMalfMisfireChance = (float)MaxMalfMisfireChance.GetValue(null);
+                float maxMalfMisfireChance = AmmoTemplate.MaxMalfMisfireChance;
                 int index = instance.MalfMisfireChance <= 0f ? 0
                     : instance.MalfMisfireChance < 3f * maxMalfMisfireChance / 7f ? 1
                     : instance.MalfMisfireChance < 4f * maxMalfMisfireChance / 7f ? 2
                     : instance.MalfMisfireChance < 5f * maxMalfMisfireChance / 7f ? 3
                     : instance.MalfMisfireChance < 6f * maxMalfMisfireChance / 7f ? 4
                     : 5;
-                return MalfChancesKeys[index].Localized();
+                return AmmoTemplate.MalfChancesKeys[index].Localized();
             },
             DisplayType = () => EItemAttributeDisplayType.Compact,
         });
@@ -156,14 +147,14 @@ internal static class AmmoTemplateExtensions
             Base = () => instance.MalfFeedChance,
             StringValue = () =>
             {
-                float maxMalfFeedChance = (float)MaxMalfFeedChance.GetValue(null);
+                float maxMalfFeedChance = AmmoTemplate.MaxMalfFeedChance;
                 int index = instance.MalfFeedChance <= 0f ? 0
                     : instance.MalfFeedChance < 1f * maxMalfFeedChance / 7f ? 1
                     : instance.MalfFeedChance < 3f * maxMalfFeedChance / 7f ? 2
                     : instance.MalfFeedChance < 5f * maxMalfFeedChance / 7f ? 3
                     : instance.MalfFeedChance < 6f * maxMalfFeedChance / 7f ? 4
                     : 5;
-                return MalfChancesKeys[index].Localized();
+                return AmmoTemplate.MalfChancesKeys[index].Localized();
             },
             DisplayType = () => EItemAttributeDisplayType.Compact,
         });

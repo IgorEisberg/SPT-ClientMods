@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-using InGameStatus = GClass2064;
+using InGameStatus = GClass2107;
 
 namespace IcyClawz.MagazineInspector;
 
