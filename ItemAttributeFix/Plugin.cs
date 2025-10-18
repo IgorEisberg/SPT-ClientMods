@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace IcyClawz.ItemAttributeFix;
 
-[BepInPlugin("com.IcyClawz.ItemAttributeFix", "IcyClawz.ItemAttributeFix", "1.6.0")]
+[BepInPlugin("com.IcyClawz.ItemAttributeFix", "IcyClawz.ItemAttributeFix", "1.7.0")]
 public class Plugin : BaseUnityPlugin
 {
     private void Awake() =>

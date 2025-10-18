@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-using CurrencyUtil = GClass2934;
+using CurrencyUtil = GClass3130;
 
 namespace IcyClawz.ItemSellPrice;
 
@@ -18,7 +18,7 @@ internal static class TraderClassExtensions
     private static ISession Session => _Session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
 
     private static readonly FieldInfo SupplyDataField =
-        typeof(TraderClass).GetField("supplyData_0", BindingFlags.Public | BindingFlags.Instance);
+        typeof(TraderClass).GetField("SupplyData_0", BindingFlags.Public | BindingFlags.Instance);
 
     public static SupplyData GetSupplyData(this TraderClass trader) =>
         SupplyDataField.GetValue(trader) as SupplyData;

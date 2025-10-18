@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace IcyClawz.CustomInteractions;
 
-[BepInPlugin("com.IcyClawz.CustomInteractions", "IcyClawz.CustomInteractions", "1.7.0")]
+[BepInPlugin("com.IcyClawz.CustomInteractions", "IcyClawz.CustomInteractions", "1.8.0")]
 public class Plugin : BaseUnityPlugin
 {
     private void Awake()

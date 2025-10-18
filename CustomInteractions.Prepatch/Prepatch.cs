@@ -11,7 +11,7 @@ public static class Prepatch
     public static void Patch(AssemblyDefinition assembly)
     {
         TypeDefinition type = assembly.MainModule.GetType("DynamicInteractionClass");
-        FieldDefinition field = type.Fields.SingleOrDefault(c => c.Name is "action_0");
+        FieldDefinition field = type.Fields.SingleOrDefault(c => c.Name is "Action_0");
         field.IsFamily = true;
         field.IsInitOnly = false;
         MethodDefinition ctor = type.Methods.SingleOrDefault(c => c.Name is ".ctor");

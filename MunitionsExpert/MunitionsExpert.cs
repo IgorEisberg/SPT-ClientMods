@@ -3,7 +3,6 @@ using EFT.InventoryLogic;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using UnityEngine;
 
 namespace IcyClawz.MunitionsExpert;
@@ -68,12 +67,6 @@ internal static class IconCache
 
 internal static class AmmoTemplateExtensions
 {
-    private static readonly FieldInfo CachedQualitiesField =
-        typeof(AmmoTemplate).GetField("_cachedQualities", BindingFlags.Public | BindingFlags.Instance);
-
-    public static List<ItemAttributeClass> GetCachedQualities(this AmmoTemplate instance) =>
-        CachedQualitiesField.GetValue(instance) as List<ItemAttributeClass>;
-
     public static void AddExtraAttributes(this AmmoTemplate instance)
     {
         instance.SafelyAddQualityToList(new ItemAttributeClass(EAmmoExtraAttributeId.ArmorDamage)

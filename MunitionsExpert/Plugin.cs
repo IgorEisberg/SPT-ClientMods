@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace IcyClawz.MunitionsExpert;
 
-[BepInPlugin("com.IcyClawz.MunitionsExpert", "IcyClawz.MunitionsExpert", "1.6.0")]
+[BepInPlugin("com.IcyClawz.MunitionsExpert", "IcyClawz.MunitionsExpert", "1.7.0")]
 public class Plugin : BaseUnityPlugin
 {
     private static ConfigEntry<bool> ColorizeConfig { get; set; }
@@ -64,13 +64,13 @@ internal class AmmoTemplatePatch : ModulePatch
 
     [PatchPrefix]
     private static bool PatchPrefix(ref AmmoTemplate __instance) =>
-        __instance.GetCachedQualities() is null;
+        __instance.CachedQualities is null;
 
     [PatchPostfix]
     private static void PatchPostfix(ref List<ItemAttributeClass> __result, ref AmmoTemplate __instance)
     {
         if (__result is null)
-            __result = __instance.GetCachedQualities();
+            __result = __instance.CachedQualities;
         else
             __instance.AddExtraAttributes();
     }

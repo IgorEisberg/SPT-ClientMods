@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace IcyClawz.MagazineInspector;
 
-[BepInPlugin("com.IcyClawz.MagazineInspector", "IcyClawz.MagazineInspector", "1.6.0")]
+[BepInPlugin("com.IcyClawz.MagazineInspector", "IcyClawz.MagazineInspector", "1.7.0")]
 public class Plugin : BaseUnityPlugin
 {
     private void Awake() =>

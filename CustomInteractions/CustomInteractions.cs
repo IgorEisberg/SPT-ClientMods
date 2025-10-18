@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-using EmptyInteractionsAbstractClass = GClass3489;
+using EmptyInteractionsAbstractClass = GClass3775;
 
 namespace IcyClawz.CustomInteractions;
 
@@ -46,7 +46,7 @@ internal sealed class CustomInteractionImpl(ItemUiContext context, string id) : 
 
     public Func<string> Caption { get; set; }
     public new Func<Sprite> Icon { get; set; }
-    public Action Action { get => action_0; set => action_0 = value; }
+    public Action Action { get => Action_0; set => Action_0 = value; }
     public Func<IEnumerable<CustomInteraction>> SubMenu { get; set; }
     public Func<bool> Enabled { get; set; }
     public Func<string> Error { get; set; }
@@ -63,7 +63,7 @@ internal sealed class CustomInteractionsImpl(ItemUiContext context) : EmptyInter
 internal static class AbstractInteractionsExtensions
 {
     private static Dictionary<string, DynamicInteractionClass> GetDynamicInteractions<T>(this ItemInfoInteractionsAbstractClass<T> instance) where T : struct, Enum =>
-        typeof(ItemInfoInteractionsAbstractClass<T>).GetField("dictionary_0", BindingFlags.Public | BindingFlags.Instance)
+        typeof(ItemInfoInteractionsAbstractClass<T>).GetField("Dictionary_0", BindingFlags.Public | BindingFlags.Instance)
             .GetValue(instance) as Dictionary<string, DynamicInteractionClass>;
 
     public static void AddCustomInteraction<T>(this ItemInfoInteractionsAbstractClass<T> instance, CustomInteractionImpl impl) where T : struct, Enum =>
