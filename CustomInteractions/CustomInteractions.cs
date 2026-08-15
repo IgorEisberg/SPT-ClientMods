@@ -1,14 +1,10 @@
 using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
-using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
-
-using EmptyInteractionsAbstractClass = GClass3775;
 
 namespace IcyClawz.CustomInteractions;
 
@@ -33,20 +29,24 @@ public class CustomInteraction(ItemUiContext context)
     internal readonly CustomInteractionImpl Impl = new(context, UnityEngine.Random.Range(0, int.MaxValue).ToString("x4"));
 
     public Func<string> Caption { get => Impl.Caption; set => Impl.Caption = value; }
-    public Func<Sprite> Icon { get => Impl.Icon; set => Impl.Icon = value; }
+    public Func<Sprite> Icon { get => Impl.CustomIcon; set => Impl.CustomIcon = value; }
     public Action Action { get => Impl.Action; set => Impl.Action = value; }
     public Func<IEnumerable<CustomInteraction>> SubMenu { get => Impl.SubMenu; set => Impl.SubMenu = value; }
     public Func<bool> Enabled { get => Impl.Enabled; set => Impl.Enabled = value; }
     public Func<string> Error { get => Impl.Error; set => Impl.Error = value; }
 }
 
-internal sealed class CustomInteractionImpl(ItemUiContext context, string id) : DynamicInteractionClass(id, id)
+// DynamicContextInteraction is the SPT 4.1 replacement for the old (now-removed) DynamicInteractionClass.
+// Unlike the old class, it's a plain concrete class (non-virtual Execute()), so we only subclass it to carry
+// our extra data (Caption/Enabled/Error/SubMenu) and to tag instances for InteractionButtonsContainerPatch to
+// recognize; the actual click/hover behaviour is fully replaced in that patch rather than relying on Execute().
+internal sealed class CustomInteractionImpl(ItemUiContext context, string id) : DynamicContextInteraction(id, id, () => { }, null)
 {
     internal readonly ItemUiContext Context = context;
 
     public Func<string> Caption { get; set; }
-    public new Func<Sprite> Icon { get; set; }
-    public Action Action { get => Action_0; set => Action_0 = value; }
+    public Func<Sprite> CustomIcon { get; set; }
+    public Action Action { get; set; }
     public Func<IEnumerable<CustomInteraction>> SubMenu { get; set; }
     public Func<bool> Enabled { get; set; }
     public Func<string> Error { get; set; }
@@ -54,99 +54,73 @@ internal sealed class CustomInteractionImpl(ItemUiContext context, string id) : 
     public bool IsInteractive() => Enabled?.Invoke() ?? true;
 }
 
-internal sealed class CustomInteractionsImpl(ItemUiContext context) : EmptyInteractionsAbstractClass(context)
+// Comfort.Common.SuccessfulResult still exists for the "enabled" case, but the old SuccessfulResult/FailedResult
+// pair EFT itself used to expose is gone; FailedInventoryResult (the only remaining IResult in Assembly-CSharp)
+// requires a full InventoryError object, so we implement our own minimal IResult for the "disabled" case instead.
+internal sealed class SimpleFailedResult(string error) : IResult
 {
-    public IEnumerable<CustomInteractionImpl> CustomInteractions => DynamicInteractions.OfType<CustomInteractionImpl>();
-    public override bool HasIcons => CustomInteractions.Any(interaction => interaction.Icon is not null);
+    public bool Succeed => false;
+    public bool Failed => true;
+    public string Error { get; } = error;
+    public int ErrorCode => 0;
+}
+
+// The submenu container. Mirrors the original mod's design of subclassing the game's interactions base with the
+// REAL ItemUiContext (the parameterless EmptyContextInteractions ctor passes null, and the submenu render path
+// is not verified safe against a null context). ContextInteractions<T> declares exactly three abstract members;
+// they're only reached for strongly-typed T interactions, which a purely dynamic submenu never has.
+internal sealed class CustomSubInteractions(ItemUiContext context) : ContextInteractions<EItemInfoButton>(context)
+{
+    public override void ExecuteInteractionInternal(EItemInfoButton button) { }
+    public override bool IsActive(EItemInfoButton button) => false;
+    public override IResult IsInteractive(EItemInfoButton button) => SuccessfulResult.New;
 }
 
 internal static class AbstractInteractionsExtensions
 {
-    private static Dictionary<string, DynamicInteractionClass> GetDynamicInteractions<T>(this ItemInfoInteractionsAbstractClass<T> instance) where T : struct, Enum =>
-        typeof(ItemInfoInteractionsAbstractClass<T>).GetField("Dictionary_0", BindingFlags.Public | BindingFlags.Instance)
-            .GetValue(instance) as Dictionary<string, DynamicInteractionClass>;
-
-    public static void AddCustomInteraction<T>(this ItemInfoInteractionsAbstractClass<T> instance, CustomInteractionImpl impl) where T : struct, Enum =>
-        instance.GetDynamicInteractions()[impl.Key] = impl;
+    // _dynamicInteractions is PUBLIC despite the underscore-prefixed name (SPT 4.1's deobfuscation names many
+    // public fields this way -- _buttonTemplate/_buttonsContainer below are the same). Reflection isn't needed
+    // at all; direct access also makes a rename a compile error instead of a runtime NullReferenceException.
+    public static void AddCustomInteraction(this ContextInteractions<EItemInfoButton> instance, CustomInteractionImpl impl) =>
+        instance._dynamicInteractions[impl.Key] = impl;
 }
 
 internal static class InteractionButtonsContainerExtensions
 {
-    private static readonly FieldInfo ButtonsContainerField =
-        typeof(InteractionButtonsContainer).GetField("_buttonsContainer", BindingFlags.NonPublic | BindingFlags.Instance);
-
-    private static RectTransform GetButtonsContainer(this InteractionButtonsContainer instance) =>
-        ButtonsContainerField.GetValue(instance) as RectTransform;
-
-    private static readonly FieldInfo ButtonTemplateField =
-        typeof(InteractionButtonsContainer).GetField("_buttonTemplate", BindingFlags.NonPublic | BindingFlags.Instance);
-
-    private static SimpleContextMenuButton GetButtonTemplate(this InteractionButtonsContainer instance) =>
-        ButtonTemplateField.GetValue(instance) as SimpleContextMenuButton;
-
-    private static readonly FieldInfo CurrentButtonField =
-        typeof(InteractionButtonsContainer).GetField("simpleContextMenuButton_0", BindingFlags.NonPublic | BindingFlags.Instance);
-
-    private static void SetCurrentButton(this InteractionButtonsContainer instance, SimpleContextMenuButton button) =>
-        CurrentButtonField.SetValue(instance, button);
-
-    private static readonly MethodInfo CreateButtonMethod =
-        typeof(InteractionButtonsContainer).GetMethod("method_1", BindingFlags.Public | BindingFlags.Instance);
-
-    private static SimpleContextMenuButton CreateButton(this InteractionButtonsContainer instance,
-        string key, string caption, SimpleContextMenuButton template, RectTransform container,
-        [CanBeNull] Sprite sprite, [CanBeNull] Action onButtonClicked, [CanBeNull] Action onMouseHover,
-        bool subMenu = false, bool autoClose = true) =>
-        (SimpleContextMenuButton)CreateButtonMethod.Invoke(instance, [
-            key, caption, template, container, sprite, onButtonClicked, onMouseHover, subMenu, autoClose
-        ]);
-
-    private static readonly MethodInfo CloseSubMenuMethod =
-        typeof(InteractionButtonsContainer).GetMethod("method_4", BindingFlags.Public | BindingFlags.Instance);
-
-    private static void CloseSubMenu(this InteractionButtonsContainer instance) =>
-        CloseSubMenuMethod.Invoke(instance, null);
-
-    private static readonly MethodInfo AddButtonMethod =
-        typeof(InteractionButtonsContainer).GetMethod("method_5", BindingFlags.Public | BindingFlags.Instance);
-
-    private static void AddButton(this InteractionButtonsContainer instance, SimpleContextMenuButton button) =>
-        AddButtonMethod.Invoke(instance, [button]);
-
     public static void AddCustomButton(this InteractionButtonsContainer instance, CustomInteractionImpl impl)
     {
         bool isInteractive = impl.IsInteractive();
         IEnumerable<CustomInteraction> subMenu = impl.SubMenu?.Invoke();
+        bool hasSubMenu = subMenu?.Any() ?? false;
         SimpleContextMenuButton button = null;
-        button = instance.CreateButton(
+        button = instance.CreateContextButton(
             impl.Key,
             impl.Caption?.Invoke() ?? "",
-            instance.GetButtonTemplate(),
-            instance.GetButtonsContainer(),
-            impl.Icon?.Invoke(),
+            instance._buttonTemplate,
+            instance._buttonsContainer,
+            impl.CustomIcon?.Invoke(),
             () =>
             {
                 if (isInteractive)
-                    impl.Execute();
+                    impl.Action?.Invoke();
             },
             () =>
             {
-                instance.SetCurrentButton(button);
                 instance.CloseSubMenu();
-                if (isInteractive && subMenu != null)
+                if (isInteractive && hasSubMenu)
                 {
-                    CustomInteractionsImpl subInteractions = new CustomInteractionsImpl(impl.Context);
+                    CustomSubInteractions subInteractions = new(impl.Context);
                     foreach (CustomInteractionImpl subImpl in subMenu.Select(item => item.Impl))
                         subInteractions.AddCustomInteraction(subImpl);
                     instance.SetSubInteractions(subInteractions);
                 }
             },
-            subMenu?.Any() ?? false,
+            hasSubMenu,
             false
         );
         button.SetButtonInteraction(
-            isInteractive ? SuccessfulResult.New : new FailedResult(impl.Error?.Invoke() ?? "", 0)
+            isInteractive ? SuccessfulResult.New : new SimpleFailedResult(impl.Error?.Invoke() ?? "")
         );
-        instance.AddButton(button);
+        instance.BindButton(button);
     }
 }
