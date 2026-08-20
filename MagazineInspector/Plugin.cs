@@ -1,10 +1,11 @@
 using BepInEx;
 using SPT.Reflection.Patching;
 using System.Reflection;
+using EFT.InventoryLogic;
 
 namespace IcyClawz.MagazineInspector;
 
-[BepInPlugin("com.IcyClawz.MagazineInspector", "IcyClawz.MagazineInspector", "1.7.0")]
+[BepInPlugin("com.IcyClawz.MagazineInspector", "IcyClawz.MagazineInspector", "1.8.0")]
 public class Plugin : BaseUnityPlugin
 {
     private void Awake() =>
@@ -14,9 +15,9 @@ public class Plugin : BaseUnityPlugin
 internal class MagazinePatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod() =>
-        typeof(MagazineItemClass).GetConstructors()[0];
+        typeof(Magazine).GetConstructors()[0];
 
     [PatchPostfix]
-    private static void PatchPostfix(ref MagazineItemClass __instance) =>
+    private static void PatchPostfix(ref Magazine __instance) =>
         __instance.AddAmmoCountAttribute();
 }
