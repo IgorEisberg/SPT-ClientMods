@@ -3,10 +3,11 @@ using EFT;
 using EFT.InventoryLogic;
 using SPT.Reflection.Patching;
 using System.Reflection;
+using EFT.Trading;
 
 namespace IcyClawz.ItemSellPrice;
 
-[BepInPlugin("com.IcyClawz.ItemSellPrice", "IcyClawz.ItemSellPrice", "1.7.0")]
+[BepInPlugin("com.IcyClawz.ItemSellPrice", "IcyClawz.ItemSellPrice", "1.8.0")]
 public class Plugin : BaseUnityPlugin
 {
     private void Awake()
@@ -21,10 +22,10 @@ public class Plugin : BaseUnityPlugin
 internal class TraderPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod() =>
-        typeof(TraderClass).GetConstructors()[0];
+        typeof(Trader).GetConstructors()[0];
 
     [PatchPostfix]
-    private static void PatchPostfix(ref TraderClass __instance) =>
+    private static void PatchPostfix(ref Trader __instance) =>
         __instance.UpdateSupplyData();
 }
 
@@ -41,19 +42,19 @@ internal class ItemPatch : ModulePatch
 internal class AmmoItemPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod() =>
-        typeof(AmmoItemClass).GetConstructors()[0];
+        typeof(Ammo).GetConstructors()[0];
 
     [PatchPostfix]
-    private static void PatchPostfix(ref AmmoItemClass __instance) =>
+    private static void PatchPostfix(ref Ammo __instance) =>
         __instance.AddTraderOfferAttribute();
 }
 
 internal class ThrowWeapItemPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod() =>
-        typeof(ThrowWeapItemClass).GetConstructors()[0];
+        typeof(ThrowWeap).GetConstructors()[0];
 
     [PatchPostfix]
-    private static void PatchPostfix(ref ThrowWeapItemClass __instance) =>
+    private static void PatchPostfix(ref ThrowWeap __instance) =>
         __instance.AddTraderOfferAttribute();
 }

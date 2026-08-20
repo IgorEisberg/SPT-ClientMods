@@ -1,38 +1,38 @@
 using Comfort.Common;
 using EFT;
+using EFT.Settings;
 using EFT.InventoryLogic;
 using SPT.Reflection.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using EFT.Trading;
 using UnityEngine;
-
-using CurrencyUtil = GClass3130;
 
 namespace IcyClawz.ItemSellPrice;
 
 internal static class TraderClassExtensions
 {
-    private static ISession _Session;
-    private static ISession Session => _Session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
+    private static IClientSession _session;
+    private static IClientSession Session => _session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
 
     private static readonly FieldInfo SupplyDataField =
-        typeof(TraderClass).GetField("SupplyData_0", BindingFlags.Public | BindingFlags.Instance);
+        typeof(Trader).GetField("_supplyData", BindingFlags.Public | BindingFlags.Instance);
 
-    public static SupplyData GetSupplyData(this TraderClass trader) =>
+    public static SupplyData GetSupplyData(this Trader trader) =>
         SupplyDataField.GetValue(trader) as SupplyData;
 
-    public static void SetSupplyData(this TraderClass trader, SupplyData supplyData) =>
+    public static void SetSupplyData(this Trader trader, SupplyData supplyData) =>
         SupplyDataField.SetValue(trader, supplyData);
 
-    public static async void UpdateSupplyData(this TraderClass trader)
+    public static async void UpdateSupplyData(this Trader trader)
     {
-        Result<SupplyData> result = await Session.GetSupplyData(trader.Id);
+        var result = await Session.GetSupplyData(trader.Id);
         if (result.Succeed)
             trader.SetSupplyData(result.Value);
         else
-            Debug.LogError("Failed to download supply data");
+            Debug.LogError("Failed to download supply daSettingsManagerta");
     }
 }
 
@@ -58,39 +58,40 @@ internal static class ItemExtensions
         ["tu"] = ["Satış fiyatı ({0})", "Tüccarlara satılamaz"],
     };
 
-    private static ISession _Session;
-    private static ISession Session => _Session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
+    private static IClientSession _session;
+    private static IClientSession Session => _session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
 
     public static void AddTraderOfferAttribute(this Item item)
     {
-        ItemAttributeClass attribute = new(EItemAttributeId.MoneySum)
+        ItemAttribute attribute = new(EItemAttributeId.MoneySum)
         {
             Name = EItemAttributeId.MoneySum.GetName(),
             DisplayNameFunc = () =>
             {
-                string language = Singleton<SharedGameSettingsClass>.Instance?.Game?.Settings?.Language?.GetValue();
+                var language = Singleton<SettingsManager>.Instance.Game.Settings.Language.Value;
+                
                 if (language is null || !DisplayNames.ContainsKey(language))
                     language = "en";
-                TraderOffer offer = GetBestTraderOffer(item);
+                var offer = GetBestTraderOffer(item);
                 return offer is not null
                     ? string.Format(DisplayNames[language][0], offer.Name)
                     : DisplayNames[language][1];
             },
             Base = () =>
             {
-                TraderOffer offer = GetBestTraderOffer(item);
-                return offer is not null ? offer.Price : 0.01f;
+                var offer = GetBestTraderOffer(item);
+                return offer?.Price ?? 0.01f;
             },
             StringValue = () =>
             {
-                TraderOffer offer = GetBestTraderOffer(item);
+                var offer = GetBestTraderOffer(item);
                 return offer is not null
                     ? $"{offer.Currency} {offer.Price}" + (offer.Count > 1 ? $" ({offer.Count})" : "")
                     : "";
             },
             FullStringValue = () =>
             {
-                IEnumerable<TraderOffer> offers = GetAllTraderOffers(item);
+                var offers = GetAllTraderOffers(item);
                 return offers.Any()
                     ? string.Join(Environment.NewLine, offers.Select(offer => $"{offer.Name}: {offer.Currency} {offer.Price}"))
                     : "";
@@ -109,7 +110,7 @@ internal static class ItemExtensions
         public int Count = count;
     }
 
-    private static TraderOffer GetTraderOffer(Item item, TraderClass trader)
+    private static TraderOffer GetTraderOffer(Item item, Trader trader)
     {
         var price = trader.GetUserItemPrice(item);
         return price.HasValue ? new(
