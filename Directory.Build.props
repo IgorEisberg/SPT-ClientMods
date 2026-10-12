@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <GameRoot Condition="'$(GameRoot)' == ''">$(MSBuildThisFileDirectory)..</GameRoot>
+    <ManagedDir>$(GameRoot)\EscapeFromTarkov_Data\Managed</ManagedDir>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(ManagedDir)\*.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="$(GameRoot)\BepInEx\core\BepInEx.dll"><Private>false</Private></Reference>
+    <Reference Include="$(GameRoot)\BepInEx\core\Mono.Cecil.dll"><Private>false</Private></Reference>
+    <Reference Include="$(GameRoot)\BepInEx\plugins\spt\spt-reflection.dll"><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-using ILightTemplate = GInterface396;
-using ISightTemplate = GInterface404;
-using GlobalEvents = GClass3752;
+using ILightTemplate = EFT.InventoryLogic.ILightComponentTemplate;
+using ISightTemplate = EFT.InventoryLogic.ISightComponentTemplate;
+using GlobalEvents = EFT.UI.BaseContextInteractions;
 
 namespace IcyClawz.ItemContextMenuExt;
 
@@ -174,7 +174,7 @@ internal sealed class CustomInteractionsProvider : ICustomInteractionsProvider
         yield return new(context)
         {
             Caption = () => component.IsActive ? "Turn off" : "Turn on",
-            Icon = () => CacheResourcesPopAbstractClass.Pop<Sprite>(IconsPrefix + (component.IsActive ? "TurnOff" : "TurnOn")),
+            Icon = () => EFT.Utilities.ResourcesCache.Pop<Sprite>(IconsPrefix + (component.IsActive ? "TurnOff" : "TurnOn")),
             Action = () =>
             {
                 Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.MenuContextMenu);
@@ -268,7 +268,7 @@ internal static class ComponentUtils
         });
     }
 
-    private static void SetScopeState(SightComponent component, FirearmScopeStateStruct scopeState)
+    private static void SetScopeState(SightComponent component, EFT.ScopeState scopeState)
     {
         Player player = GamePlayerOwner.MyPlayer;
 
@@ -304,7 +304,7 @@ internal static class ComponentUtils
         });
     }
 
-    private static void SetLightState(LightComponent component, FirearmLightStateStruct lightState)
+    private static void SetLightState(LightComponent component, EFT.LightsState lightState)
     {
         Player player = GamePlayerOwner.MyPlayer;
 

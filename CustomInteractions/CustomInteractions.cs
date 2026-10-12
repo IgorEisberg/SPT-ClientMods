@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-using EmptyInteractionsAbstractClass = GClass3775;
+using EmptyInteractionsAbstractClass = EFT.UI.BaseEmptyContextInteractions;
 
 namespace IcyClawz.CustomInteractions;
 
@@ -40,13 +40,13 @@ public class CustomInteraction(ItemUiContext context)
     public Func<string> Error { get => Impl.Error; set => Impl.Error = value; }
 }
 
-internal sealed class CustomInteractionImpl(ItemUiContext context, string id) : DynamicInteractionClass(id, id)
+internal sealed class CustomInteractionImpl(ItemUiContext context, string id) : DynamicContextInteraction(id, id, null)
 {
     internal readonly ItemUiContext Context = context;
 
     public Func<string> Caption { get; set; }
     public new Func<Sprite> Icon { get; set; }
-    public Action Action { get => Action_0; set => Action_0 = value; }
+    public Action Action { get => _callback; set => _callback = value; }
     public Func<IEnumerable<CustomInteraction>> SubMenu { get; set; }
     public Func<bool> Enabled { get; set; }
     public Func<string> Error { get; set; }
@@ -62,36 +62,32 @@ internal sealed class CustomInteractionsImpl(ItemUiContext context) : EmptyInter
 
 internal static class AbstractInteractionsExtensions
 {
-    private static Dictionary<string, DynamicInteractionClass> GetDynamicInteractions<T>(this ItemInfoInteractionsAbstractClass<T> instance) where T : struct, Enum =>
-        typeof(ItemInfoInteractionsAbstractClass<T>).GetField("Dictionary_0", BindingFlags.Public | BindingFlags.Instance)
-            .GetValue(instance) as Dictionary<string, DynamicInteractionClass>;
-
-    public static void AddCustomInteraction<T>(this ItemInfoInteractionsAbstractClass<T> instance, CustomInteractionImpl impl) where T : struct, Enum =>
-        instance.GetDynamicInteractions()[impl.Key] = impl;
+    public static void AddCustomInteraction<T>(this ContextInteractions<T> instance, CustomInteractionImpl impl) where T : struct, Enum =>
+        instance._dynamicInteractions[impl.Key] = impl;
 }
 
 internal static class InteractionButtonsContainerExtensions
 {
     private static readonly FieldInfo ButtonsContainerField =
-        typeof(InteractionButtonsContainer).GetField("_buttonsContainer", BindingFlags.NonPublic | BindingFlags.Instance);
+        typeof(InteractionButtonsContainer).GetField("_buttonsContainer", BindingFlags.Public | BindingFlags.Instance);
 
     private static RectTransform GetButtonsContainer(this InteractionButtonsContainer instance) =>
         ButtonsContainerField.GetValue(instance) as RectTransform;
 
     private static readonly FieldInfo ButtonTemplateField =
-        typeof(InteractionButtonsContainer).GetField("_buttonTemplate", BindingFlags.NonPublic | BindingFlags.Instance);
+        typeof(InteractionButtonsContainer).GetField("_buttonTemplate", BindingFlags.Public | BindingFlags.Instance);
 
     private static SimpleContextMenuButton GetButtonTemplate(this InteractionButtonsContainer instance) =>
         ButtonTemplateField.GetValue(instance) as SimpleContextMenuButton;
 
     private static readonly FieldInfo CurrentButtonField =
-        typeof(InteractionButtonsContainer).GetField("simpleContextMenuButton_0", BindingFlags.NonPublic | BindingFlags.Instance);
+        typeof(InteractionButtonsContainer).GetField("_subMenuButton", BindingFlags.NonPublic | BindingFlags.Instance);
 
     private static void SetCurrentButton(this InteractionButtonsContainer instance, SimpleContextMenuButton button) =>
         CurrentButtonField.SetValue(instance, button);
 
     private static readonly MethodInfo CreateButtonMethod =
-        typeof(InteractionButtonsContainer).GetMethod("method_1", BindingFlags.Public | BindingFlags.Instance);
+        typeof(InteractionButtonsContainer).GetMethods(BindingFlags.Public | BindingFlags.Instance).Single(method => method.Name == "CreateContextButton" && !method.IsGenericMethod);
 
     private static SimpleContextMenuButton CreateButton(this InteractionButtonsContainer instance,
         string key, string caption, SimpleContextMenuButton template, RectTransform container,
@@ -102,13 +98,13 @@ internal static class InteractionButtonsContainerExtensions
         ]);
 
     private static readonly MethodInfo CloseSubMenuMethod =
-        typeof(InteractionButtonsContainer).GetMethod("method_4", BindingFlags.Public | BindingFlags.Instance);
+        typeof(InteractionButtonsContainer).GetMethod("CloseSubMenu", BindingFlags.Public | BindingFlags.Instance);
 
     private static void CloseSubMenu(this InteractionButtonsContainer instance) =>
         CloseSubMenuMethod.Invoke(instance, null);
 
     private static readonly MethodInfo AddButtonMethod =
-        typeof(InteractionButtonsContainer).GetMethod("method_5", BindingFlags.Public | BindingFlags.Instance);
+        typeof(InteractionButtonsContainer).GetMethod("BindButton", BindingFlags.Public | BindingFlags.Instance);
 
     private static void AddButton(this InteractionButtonsContainer instance, SimpleContextMenuButton button) =>
         AddButtonMethod.Invoke(instance, [button]);

@@ -8,25 +8,25 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-using CurrencyUtil = GClass3130;
+using CurrencyUtil = EFT.InventoryLogic.CurrencyUtil;
 
 namespace IcyClawz.ItemSellPrice;
 
 internal static class TraderClassExtensions
 {
-    private static ISession _Session;
-    private static ISession Session => _Session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
+    private static IEftSession _Session;
+    private static IEftSession Session => _Session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
 
     private static readonly FieldInfo SupplyDataField =
-        typeof(TraderClass).GetField("SupplyData_0", BindingFlags.Public | BindingFlags.Instance);
+        typeof(EFT.Trading.Trader).GetField("_supplyData", BindingFlags.Public | BindingFlags.Instance);
 
-    public static SupplyData GetSupplyData(this TraderClass trader) =>
+    public static SupplyData GetSupplyData(this EFT.Trading.Trader trader) =>
         SupplyDataField.GetValue(trader) as SupplyData;
 
-    public static void SetSupplyData(this TraderClass trader, SupplyData supplyData) =>
+    public static void SetSupplyData(this EFT.Trading.Trader trader, SupplyData supplyData) =>
         SupplyDataField.SetValue(trader, supplyData);
 
-    public static async void UpdateSupplyData(this TraderClass trader)
+    public static async void UpdateSupplyData(this EFT.Trading.Trader trader)
     {
         Result<SupplyData> result = await Session.GetSupplyData(trader.Id);
         if (result.Succeed)
@@ -58,17 +58,17 @@ internal static class ItemExtensions
         ["tu"] = ["Satış fiyatı ({0})", "Tüccarlara satılamaz"],
     };
 
-    private static ISession _Session;
-    private static ISession Session => _Session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
+    private static IEftSession _Session;
+    private static IEftSession Session => _Session ??= ClientAppUtils.GetMainApp().GetClientBackEndSession();
 
     public static void AddTraderOfferAttribute(this Item item)
     {
-        ItemAttributeClass attribute = new(EItemAttributeId.MoneySum)
+        EFT.InventoryLogic.ItemAttribute attribute = new(EItemAttributeId.MoneySum)
         {
             Name = EItemAttributeId.MoneySum.GetName(),
             DisplayNameFunc = () =>
             {
-                string language = Singleton<SharedGameSettingsClass>.Instance?.Game?.Settings?.Language?.GetValue();
+                string language = Singleton<EFT.Settings.SettingsManager>.Instance?.Game?.Settings?.Language?.GetValue();
                 if (language is null || !DisplayNames.ContainsKey(language))
                     language = "en";
                 TraderOffer offer = GetBestTraderOffer(item);
@@ -109,7 +109,7 @@ internal static class ItemExtensions
         public int Count = count;
     }
 
-    private static TraderOffer GetTraderOffer(Item item, TraderClass trader)
+    private static TraderOffer GetTraderOffer(Item item, EFT.Trading.Trader trader)
     {
         var price = trader.GetUserItemPrice(item);
         return price.HasValue ? new(

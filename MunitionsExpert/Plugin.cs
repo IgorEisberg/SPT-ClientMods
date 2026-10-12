@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace IcyClawz.MunitionsExpert;
 
-[BepInPlugin("com.IcyClawz.MunitionsExpert", "IcyClawz.MunitionsExpert", "1.7.0")]
+[BepInPlugin("com.IcyClawz.MunitionsExpert", "IcyClawz.MunitionsExpert", "1.7.1")]
 public class Plugin : BaseUnityPlugin
 {
     private static ConfigEntry<bool> ColorizeConfig { get; set; }
@@ -63,15 +63,13 @@ internal class AmmoTemplatePatch : ModulePatch
         typeof(AmmoTemplate).GetMethod("GetCachedReadonlyQualities", BindingFlags.Public | BindingFlags.Instance);
 
     [PatchPrefix]
-    private static bool PatchPrefix(ref AmmoTemplate __instance) =>
-        __instance.CachedQualities is null;
+    private static void PatchPrefix(AmmoTemplate __instance, out bool __state) =>
+        __state = __instance._cachedQualities is null;
 
     [PatchPostfix]
-    private static void PatchPostfix(ref List<ItemAttributeClass> __result, ref AmmoTemplate __instance)
+    private static void PatchPostfix(List<EFT.InventoryLogic.ItemAttribute> __result, AmmoTemplate __instance, bool __state)
     {
-        if (__result is null)
-            __result = __instance.CachedQualities;
-        else
+        if (__state && __result is not null)
             __instance.AddExtraAttributes();
     }
 }
@@ -87,7 +85,7 @@ internal class ItemViewPatch : ModulePatch
     [PatchPrefix]
     private static void PatchPrefix(ref ItemView __instance)
     {
-        if (!Plugin.Colorize || __instance.Item is not AmmoItemClass ammo || ammo.PenetrationPower <= 0)
+        if (!Plugin.Colorize || __instance.Item is not EFT.InventoryLogic.Ammo ammo || ammo.PenetrationPower <= 0)
             return;
         int armorClass = ammo.AmmoTemplate.GetPenetrationArmorClass();
         BackgroundColorField.SetValue(__instance, Plugin.GetArmorClassColor(armorClass));
@@ -97,7 +95,7 @@ internal class ItemViewPatch : ModulePatch
 internal class EntityIconPatch : ModulePatch
 {
     private static readonly FieldInfo ColorPanelField =
-        typeof(EntityIcon).GetField("_colorPanel", BindingFlags.NonPublic | BindingFlags.Instance);
+        typeof(EntityIcon).GetField("_colorPanel", BindingFlags.Public | BindingFlags.Instance);
 
     protected override MethodBase GetTargetMethod() =>
         typeof(EntityIcon).GetMethod("Show", BindingFlags.Public | BindingFlags.Instance);
@@ -105,7 +103,7 @@ internal class EntityIconPatch : ModulePatch
     [PatchPostfix]
     private static void PatchPostfix(ref EntityIcon __instance, Item item)
     {
-        if (!Plugin.Colorize || item is not AmmoItemClass ammo || ammo.PenetrationPower <= 0)
+        if (!Plugin.Colorize || item is not EFT.InventoryLogic.Ammo ammo || ammo.PenetrationPower <= 0)
             return;
         if (ColorPanelField.GetValue(__instance) is not Image image)
             return;

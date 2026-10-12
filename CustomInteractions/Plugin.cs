@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace IcyClawz.CustomInteractions;
 
-[BepInPlugin("com.IcyClawz.CustomInteractions", "IcyClawz.CustomInteractions", "1.8.0")]
+[BepInPlugin("com.IcyClawz.CustomInteractions", "IcyClawz.CustomInteractions", "1.8.1")]
 public class Plugin : BaseUnityPlugin
 {
     private void Awake()
@@ -22,8 +22,8 @@ internal class ItemUiContextPatch : ModulePatch
         typeof(ItemUiContext).GetMethod("GetItemContextInteractions", BindingFlags.Public | BindingFlags.Instance);
 
     [PatchPostfix]
-    private static void Postfix(ref ItemInfoInteractionsAbstractClass<EFT.InventoryLogic.EItemInfoButton> __result,
-        ref ItemUiContext __instance, ItemContextClass itemContext)
+    private static void Postfix(ref ContextInteractions<EFT.InventoryLogic.EItemInfoButton> __result,
+        ref ItemUiContext __instance, EFT.InventoryLogic.ItemContext itemContext)
     {
         foreach (var provider in CustomInteractionsManager.Providers)
         {
@@ -39,10 +39,10 @@ internal class ItemUiContextPatch : ModulePatch
 internal class InteractionButtonsContainerPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod() =>
-        typeof(InteractionButtonsContainer).GetMethod("method_3", BindingFlags.Public | BindingFlags.Instance);
+        typeof(InteractionButtonsContainer).GetMethod("CreateDynamicContextButton", BindingFlags.Public | BindingFlags.Instance);
 
     [PatchPrefix]
-    private static bool Prefix(ref InteractionButtonsContainer __instance, DynamicInteractionClass interaction)
+    private static bool Prefix(ref InteractionButtonsContainer __instance, DynamicContextInteraction interaction)
     {
         if (interaction is CustomInteractionImpl impl)
         {
